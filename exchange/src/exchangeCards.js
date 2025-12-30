@@ -1,4 +1,4 @@
-import { distinct, intersect, withoutAll } from "jsr:@std/collections";
+import { withoutAll } from "jsr:@std/collections";
 
 const takeFromPlayer = (playerCards, player) => {
   const hand = player.hand;
@@ -25,9 +25,29 @@ const swapCards = (temp, marketCards, market, player) => {
   return { market, player };
 };
 
-const isExchangePossible = (market, playerCards) => {
+const isEnoughAvailableCards = (market, playerCards) => {
   const differentFromPlayerCardsInMarket = withoutAll(market, playerCards);
-  return differentFromPlayerCardsInMarket.length > 1;
+  return (differentFromPlayerCardsInMarket.length >= playerCards.length);
+};
+
+const willBecome8Goods = (hand, playerCards) => {
+  const camelCountInPlayerCards = playerCards.reduce(
+    (count, x) => x === "m" ? count + 1 : count,
+    0,
+  );
+  return hand.length + camelCountInPlayerCards > 7;
+};
+
+const isExchangePossible = (market, hand, playerCards) => {
+  if (!isEnoughAvailableCards(market, playerCards)) {
+    console.log("There are not enough available cards to exchange from market");
+    return false;
+  }
+  if (willBecome8Goods(hand, playerCards)) {
+    console.log("After exchange your goods count will become more than 7!!!");
+    return false;
+  }
+  return true;
 };
 
 const frequency = (table, key) => {
@@ -66,15 +86,17 @@ const areValidPlayerCards = (playerCards, hand, herd) => {
 };
 
 const getPlayerCards = (market, hand, herd) => {
-  const cardsFromPlayer = prompt("Enter the cards you want to exchange : "); //supposed seperated by ","
+  const cardsFromPlayer = prompt(
+    "Enter the cards you want to exchange from your hand (separated by ','): ",
+  ); //supposed seperated by ","
   const playerCards = cardsFromPlayer.split(",");
-
-  if (!isExchangePossible(market, playerCards)) {
-    return;
-  }
 
   if (!areValidPlayerCards(playerCards, hand, herd)) {
     return getPlayerCards(market, hand, herd);
+  }
+
+  if (!isExchangePossible(market, hand, playerCards)) {
+    return;
   }
   return playerCards;
 };
@@ -82,14 +104,7 @@ const getPlayerCards = (market, hand, herd) => {
 const doIntersect = (marketCards, playerCards) =>
   marketCards.some((card) => playerCards.includes(card));
 
-const isGoodsLessThan8 = (marketCards, playerCards, hand) => {
-  const goodsInPlayerCards = withoutAll(playerCards, ["m"]);
-  const leftGoodsInExistingCards = withoutAll(hand, goodsInPlayerCards);
-  const goodsInMarketCards = withoutAll(marketCards, ["m"]);
-  return (leftGoodsInExistingCards.length + goodsInMarketCards.length) < 8;
-};
-
-const areValidMarketCards = (market, hand, marketCards, playerCards) => {
+const areValidMarketCards = (market, marketCards, playerCards) => {
   if (marketCards.length !== playerCards.length) {
     console.log("Please enter equal number of cards!!!");
     return false;
@@ -97,11 +112,6 @@ const areValidMarketCards = (market, hand, marketCards, playerCards) => {
 
   if (doIntersect(marketCards, playerCards)) {
     console.log("You can't exchange same cards!!!");
-    return false;
-  }
-
-  if (!isGoodsLessThan8(marketCards, playerCards, hand)) {
-    console.log("After exchange your goods count will become more than 7!!!");
     return false;
   }
 
@@ -113,18 +123,13 @@ const areValidMarketCards = (market, hand, marketCards, playerCards) => {
   return true;
 };
 
-const getMarketCards = (market, hand, playerCards) => {
+const getMarketCards = (market, playerCards) => {
   const cardsFromMarket = prompt("Enter the cards you want from market : ");
   const cardsOfMarket = cardsFromMarket.split(",");
-  if (
-    !isGoodsLessThan8(cardsOfMarket, playerCards, hand) &&
-    playerCards.includes("m")
-  ) {
-    return;
-  }
-  if (!areValidMarketCards(market, hand, cardsOfMarket, playerCards)) {
-    return getMarketCards(market, hand, playerCards);
-  }
+
+  if (!areValidMarketCards(market, cardsOfMarket, playerCards)) {
+    return getMarketCards(market, playerCards);
+  } // ask confirmation for exchange option, then do recursion
   return cardsOfMarket;
 };
 
@@ -137,16 +142,11 @@ export const exchange = (player, gameData) => {
   const playerCards = getPlayerCards(market, player.hand, player.herd);
 
   if (!playerCards) {
-    console.log("Exchange is not possible in this situation!!!\nPlay again");
+    console.log("Exchange is not possible in this situation!!!");
     return;
-  }
+  } // ask confirmation for exchange option, then do recursion
 
-  const marketCards = getMarketCards(market, player.hand, playerCards);
-
-  if (!marketCards) {
-    console.log("Exchange is not possible in this situation!!!\nPlay again");
-    return;
-  }
+  const marketCards = getMarketCards(market, playerCards);
 
   const tempCards = takeFromPlayer(playerCards, player);
   return swapCards(tempCards, marketCards, market, player);
@@ -159,6 +159,17 @@ const testcases = {
   2: {
     gameData: { market: ["r", "r", "o", "r", "m"] },
     player: { hand: ["v", "v", "o", "r", "r"], herd: ["m", "m", "m"] },
+  },
+  3: {
+    gameData: { market: ["r", "r", "o", "r", "l"] },
+    player: { hand: [], herd: ["m", "m", "m", "m", "m"] },
+  },
+  4: {
+    gameData: { market: ["r", "r", "r", "r", "r"] },
+    player: {
+      hand: ["l", "l", "l", "l", "l"],
+      herd: ["m", "m", "m", "m", "m"],
+    },
   },
 };
 
