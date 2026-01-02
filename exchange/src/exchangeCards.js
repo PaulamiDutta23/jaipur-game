@@ -30,7 +30,7 @@ const isEnoughAvailableCards = (market, playerCards) => {
   return (differentFromPlayerCardsInMarket.length >= playerCards.length);
 };
 
-const willBecome8Goods = (hand, playerCards) => {
+const wilGoodslBecomeMoreThan7 = (hand, playerCards) => {
   const camelCountInPlayerCards = playerCards.reduce(
     (count, x) => x === "m" ? count + 1 : count,
     0,
@@ -43,7 +43,7 @@ const isExchangePossible = (market, hand, playerCards) => {
     console.log("There are not enough available cards to exchange from market");
     return false;
   }
-  if (willBecome8Goods(hand, playerCards)) {
+  if (wilGoodslBecomeMoreThan7(hand, playerCards)) {
     console.log("After exchange your goods count will become more than 7!!!");
     return false;
   }
@@ -78,7 +78,7 @@ const areValidPlayerCards = (playerCards, hand, herd) => {
   merged.push(...herd, ...hand);
 
   if (!doContainFromExistings(playerCards, merged)) {
-    console.log("Please enter cards from the list you have!!!");
+    console.log("Please enter cards from your hand!!!");
     return false;
   }
 
@@ -96,7 +96,7 @@ const getPlayerCards = (market, hand, herd) => {
   }
 
   if (!isExchangePossible(market, hand, playerCards)) {
-    return;
+    return getPlayerCards(market, hand, herd);
   }
   return playerCards;
 };
@@ -116,21 +116,27 @@ const areValidMarketCards = (market, marketCards, playerCards) => {
   }
 
   if (!doContainFromExistings(marketCards, market)) {
-    console.log("Please enter cards from the list you have!!!");
+    console.log("Please enter cards from existing market!!!");
     return false;
   }
 
   return true;
 };
 
-const getMarketCards = (market, playerCards) => {
+const getMarketCards = (market, playerCards, hand, herd) => {
   const cardsFromMarket = prompt("Enter the cards you want from market : ");
-  const cardsOfMarket = cardsFromMarket.split(",");
+  let cardsOfMarket = cardsFromMarket.split(",");
 
   if (!areValidMarketCards(market, cardsOfMarket, playerCards)) {
-    return getMarketCards(market, playerCards);
-  } // ask confirmation for exchange option, then do recursion
-  return cardsOfMarket;
+    const response = confirm("Do you want to exchange ?");
+    if(response) {
+      playerCards = getPlayerCards(market,hand,herd);
+      return getMarketCards(market,playerCards,hand,herd);
+    } else {
+      cardsOfMarket = [];
+    }
+  }
+  return [playerCards, cardsOfMarket];
 };
 
 export const exchange = (player, gameData) => {
@@ -139,17 +145,15 @@ export const exchange = (player, gameData) => {
     Market : ${market}\n
     Hand : ${player.hand}
     Herd : ${player.herd}`);
-  const playerCards = getPlayerCards(market, player.hand, player.herd);
 
-  if (!playerCards) {
-    console.log("Exchange is not possible in this situation!!!");
-    return;
-  } // ask confirmation for exchange option, then do recursion
-
-  const marketCards = getMarketCards(market, playerCards);
-
-  const tempCards = takeFromPlayer(playerCards, player);
-  return swapCards(tempCards, marketCards, market, player);
+  const playerCard = getPlayerCards(market, player.hand, player.herd);
+  const [playerCards, marketCards] = getMarketCards(market,playerCard,player.hand,player.herd);
+    if (marketCards.length < 1) {
+      console.log("choose other option");
+      return; // returns to the main function so that player can change functionality option from exchange to other
+    }
+    const tempCards = takeFromPlayer(playerCards, player);
+    return swapCards(tempCards, marketCards, market, player);
 };
 const testcases = {
   1: {
@@ -173,5 +177,5 @@ const testcases = {
   },
 };
 
-const input = testcases[2];
+const input = testcases[1];
 console.log(exchange(input.player, input.gameData));
