@@ -68,28 +68,28 @@ export const gameData = {
   ],
   market: ["m", "m", "m"],
   goodsMap: {
-    r: { symbol: "♦️ ", count: 6, goodName: "ruby", coins: [7, 7, 5, 5, 5] },
-    g: { symbol: "⚱️ ", count: 6, goodName: "gold", coins: [6, 6, 5, 5, 5] },
-    v: { symbol: "🪙 ", count: 6, goodName: "silver", coins: [5, 5, 5, 5, 5] },
-    o: {
+    ruby: { symbol: "♦️ ", count: 6, alias: "r", coins: [7, 7, 5, 5, 5] },
+    gold: { symbol: "⚱️ ", count: 6, alias: "g", coins: [6, 6, 5, 5, 5] },
+    silver: { symbol: "🪙 ", count: 6, alias: "v", coins: [5, 5, 5, 5, 5] },
+    cloth: {
       symbol: "👕 ",
       count: 8,
-      goodName: "cloth",
+      alias: "o",
       coins: [5, 3, 3, 2, 2, 1, 1],
     },
-    p: {
+    spices: {
       symbol: "🌶️ ",
       count: 8,
-      goodName: "spices",
+      alias: "p",
       coins: [5, 3, 3, 2, 2, 1, 1],
     },
-    l: {
+    leather: {
       symbol: "💼 ",
       count: 10,
-      goodName: "leather",
+      alias: "l",
       coins: [4, 3, 2, 1, 1, 1, 1, 1, 1],
     },
-    m: { symbol: "🐪 ", count: 8, goodName: "camels", coins: [5] },
+    camels: { symbol: "🐪 ", count: 8, alias: "m", coins: [5] },
   },
   bonus: {
     3: [1, 1, 2, 2, 2, 3, 3],
@@ -97,7 +97,7 @@ export const gameData = {
     5: [8, 8, 9, 10, 10],
   },
   players: [
-    { playerId: 1, playerName: "", herd: [], hand: [], points: 0 },
-    { playerId: 2, playerName: "", herd: [], hand: [], points: 0 },
+    { playerId: 1, playerName: "", herd: [], hand: [] },
+    { playerId: 2, playerName: "", herd: [], hand: [] },
   ],
 };
